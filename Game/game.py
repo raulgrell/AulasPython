@@ -5,9 +5,10 @@ from pygame.locals import *
 from random import random, randint
 from math import sqrt
 
+from lib import load_png
+
 WIDTH = 600
 HEIGHT = 400
-
 
 def get_random_colour():
     r = randint(0, 255)
@@ -29,21 +30,22 @@ class Ball(object):
         self.velX = 0
         self.velY = 0
         self.radius = radius
+        self.img = load_png("data/ball.png")
 
     def draw(self, surface):
         pos = (int(self.posX), int(self.posY))
         pygame.draw.circle(surface, Ball.color, pos, int(self.radius))
+        surface.bli
 
-    def update(self):
-        self.velY += 0.00001
-        self.posY += self.velY
+    def update(self, dt):
+        self.velY += 100 * dt
+        self.posY += self.velY * dt
 
 
 class Game(object):
     background_color = (63, 255, 38)
 
-    def __init__(self, surf, score=0):
-        self.surface = surf
+    def __init__(self, score=0):
         self.score = score
         self.ball = Ball(WIDTH / 2, HEIGHT / 2, 30)
         self.reset()
@@ -57,13 +59,12 @@ class Game(object):
 
         self.score = 0
 
-    def draw(self):
-        self.surface.fill(Game.background_color)
-        self.ball.draw(self.surface)
+    def draw(self, surface):
+        surface.fill(Game.background_color)
+        self.ball.draw(surface)
 
-    def update(self):
-        self.ball.update()
-
+    def update(self, dt):
+        self.ball.update(dt)
         if self.ball.posY > HEIGHT:
             self.reset()
 
@@ -73,14 +74,16 @@ class Game(object):
             posMouse = ev.pos
             d = dist(posBall, posMouse)
             if d <= self.ball.radius:
-                self.ball.velY = -0.05
+                self.ball.velY = -100
             else:
                 pass
         elif ev.button == 3:
             pass
 
+pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 game = Game(screen)
+clock = pygame.time.Clock()
 
 while True:
     for ev in pygame.event.get():
@@ -93,7 +96,8 @@ while True:
             if ev.key == K_u:
                 game.reset()
 
-    game.update()
-    game.draw()
+    dt = clock.tick(60) / 1000
+    game.update(dt)
+    game.draw(screen)
 
     pygame.display.update()
