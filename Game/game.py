@@ -35,7 +35,6 @@ class Ball(object):
     def draw(self, surface):
         pos = (int(self.posX), int(self.posY))
         pygame.draw.circle(surface, Ball.color, pos, int(self.radius))
-        surface.bli
 
     def update(self, dt):
         self.velY += 100 * dt

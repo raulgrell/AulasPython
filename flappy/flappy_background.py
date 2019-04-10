@@ -31,11 +31,24 @@ class ScrollingBackground(object):
 
     def scroll(self, px):
         """Scrolls px pixels forward; if px < 0, scrolls back"""
-        pass
+        self.offset += px
+        self.offset %= self.bg_image_width
 
     def update(self):
         """Updates the scrolling background on the surface"""
-        pass
+        if self.offset + self.surface_width <= self.bg_image_width:
+            # One slice
+            area = pygame.Rect(self.offset, 0, self.surface_width, self.surface_height)
+            self.surface.blit(self.bg_image, (0, 0), area)
+        else:
+            # Two slices
+            first_width = self.bg_image_width - self.offset
+            area = pygame.Rect(self.offset, 0, first_width, self.surface_height)
+            self.surface.blit(self.bg_image, (0, 0), area)
+
+            second_width = self.surface_width - first_width 
+            area = pygame.Rect(0, 0, second_width, self.surface_height)
+            self.surface.blit(self.bg_image, (first_width, 0), area)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 

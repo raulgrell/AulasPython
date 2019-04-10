@@ -2,11 +2,14 @@ import sys
 import pygame
 from pygame.locals import *
 from random import randint
+# Quando tem () é uma função
+# Quando não TEM () não é uma função mas sim uma variavel ok?
 
 WIDTH = 500
 HEIGHT = 350
+
 TUBE_WIDTH = 80                 # width of the tube
-TUBE_INTERVAL = 160               # spacing between each consecutive tube
+TUBE_INTERVAL = 160             # spacing between each consecutive tube
 TUBE_GAP = 80                   # height of the hole in the tube
 TUBE_COLOUR = (34, 130, 127)    # colour of the tube
 TUBE_BORDER_COLOUR = (44, 170, 160) # colour of the border of the tube
@@ -64,12 +67,13 @@ class Duck(object):
         self.pos = pos
 
     def update(self):
-        """DESENHAR O PATO NO ECRA"""
-        pass
+        """DESENHAR O PATO NO ECRÃ"""
+        self.surface.blit(self.img, self.pos)
+   
 
 def draw_tube(surf, tube):
-    """DESENHAR O TUBO NO ECRA"""
-    pass
+    """DESENHAR O TUBO NA SUPERFICIE"""
+    pygame.draw.rect(surf, TUBE_COLOUR, tube)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -104,10 +108,24 @@ while True:
         # create a new tube in the end of the screen
         # a tube is composed of two halfs, the top one and the bottom one
         # the two halfs are separated by TUBE_GAP pixels
-        """CRIAR NOVO TUBO"""
-        pass
-        
-    """PROCESSAR OS TUBOS"""
+        top_height = randint(TUBE_GAP, HEIGHT - TUBE_GAP)
+        bot_height = HEIGHT - TUBE_GAP - top_height
+        top_half = pygame.Rect(WIDTH, 0, TUBE_WIDTH, top_height)
+        bot_half = pygame.Rect(WIDTH, top_height + TUBE_GAP, TUBE_WIDTH, bot_height)
+        tubes.append((top_half,bot_half))
+        tube_countdown = TUBE_WIDTH + TUBE_INTERVAL
+
+    i = 0
+    while i < len(tubes):
+        tubes[i][0].left -= horizontal_speed
+        tubes[i][1].left -= horizontal_speed
+
+        if tubes[i][0].right <= 0:
+            tubes.pop(i)
+        else: 
+            draw_tube(screen, tubes[i][0])
+            draw_tube(screen, tubes[i][1])
+            i += 1
 
     duck.update()
 
