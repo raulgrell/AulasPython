@@ -73,7 +73,7 @@ class Duck(object):
         """CONSTRUIR O RETANGULO DE COLISAO"""
         self.collision_rect = pygame.Rect(
             self.pos.x, self.pos.y,
-            img.get_width() * 0.8, img.get_height() * 0.8)
+            img.get_width() * 0.8, img.get_height() * 0.6)
         self.a = 2
         self.v0 = -10
         self.x0 = pos[1]
@@ -82,6 +82,7 @@ class Duck(object):
     def update(self):
         x, y = self.pos.topleft
         p = [x, round(y)]
+        # pygame.draw.rect(self.surface, (0, 0, 0), self.collision_rect)
         self.surface.blit(self.img, p)
 
     def update_position(self):
