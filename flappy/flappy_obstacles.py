@@ -2,6 +2,7 @@ import sys
 import pygame
 from pygame.locals import *
 from random import randint
+
 # Quando tem () é uma função
 # Quando não TEM () não é uma função mas sim uma variavel ok?
 

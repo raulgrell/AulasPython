@@ -2,6 +2,8 @@ import sys
 import pygame
 from pygame.locals import *
 from random import randint
+### COMO CRIAR UM ATRIBUTO
+## self.QUALQUERCOISA
 
 WIDTH = 500
 HEIGHT = 350
@@ -9,8 +11,9 @@ TUBE_WIDTH = 80                 # width of the tube
 TUBE_INTERVAL = 160               # spacing between each consecutive tube
 TUBE_GAP = 80                   # height of the hole in the tube
 TUBE_COLOUR = (34, 130, 127)    # colour of the tube
-TUBE_BORDER_COLOUR = (44, 170, 160) # colour of the border of the tube
+TUBE_BORDER_COLOUR = (44, 170, 160)  # colour of the border of the tube
 FPS = 60
+
 
 def load_image(name, transparent=False):
     """Function that handles image loading
@@ -25,6 +28,7 @@ def load_image(name, transparent=False):
     img_rect = img.get_rect()
 
     return img, img_rect
+
 
 class ScrollingBackground(object):
     def __init__(self, surface, bg_image):
@@ -45,33 +49,38 @@ class ScrollingBackground(object):
         if self.offset + self.surface_width <= self.bg_image_width:
             # we can take one whole slice
             area = pygame.Rect(self.offset, 0,
-                        self.surface_width, self.surface_height)
-            self.surface.blit(self.bg_image, (0,0), area)
+                               self.surface_width, self.surface_height)
+            self.surface.blit(self.bg_image, (0, 0), area)
         else:
             # we must take two slices
             fst_width = self.bg_image_width - self.offset
             area = pygame.Rect(self.offset, 0,
-                        fst_width, self.surface_height)
-            self.surface.blit(self.bg_image, (0,0), area)
-            area = pygame.Rect(0, 0, 
-                        self.surface_width - fst_width, self.surface_height)
+                               fst_width, self.surface_height)
+            self.surface.blit(self.bg_image, (0, 0), area)
+            area = pygame.Rect(0, 0,
+                               self.surface_width - fst_width, self.surface_height)
             self.surface.blit(self.bg_image, (fst_width, 0), area)
+
 
 class Duck(object):
     def __init__(self, surface, img, pos):
         self.surface = surface
         self.img = img
         self.pos = pygame.Rect(pos[0], pos[1],
-                                img.get_width(),
-                                img.get_height())
+                               #função
+                               img.get_width(),
+                               img.get_height())
         """CONSTRUIR O RETANGULO DE COLISAO"""
-        self.a = 0
-        self.v0 = 0
+        self.collision_rect = pygame.Rect(
+            self.pos.x, self.pos.y,
+            img.get_width() * 0.8, img.get_height() * 0.8)
+        self.a = 2
+        self.v0 = -10
         self.x0 = pos[1]
         self.t = 0
 
     def update(self):
-        x,y = self.pos.topleft
+        x, y = self.pos.topleft
         p = [x, round(y)]
         self.surface.blit(self.img, p)
 
@@ -79,11 +88,14 @@ class Duck(object):
         # every time we update the position, t increases 0.2
         self.t += 0.2
         """ATUALIZAR A POSICAO DO TOPO"""
+        self.pos.top = 0.5 * self.a * self.t ** 2 + self.v0 * self.t + self.x0
         self.collision_rect.center = self.pos.center
 
     def press_bar(self):
         """REINICIAR A EQUACAO DA POSICAO"""
-        pass
+        self.t = 0
+        self.x0 = self.pos.top
+
 
 def draw_tube(surf, tube):
     top = tube[0]
@@ -93,6 +105,7 @@ def draw_tube(surf, tube):
     pygame.draw.rect(surf, TUBE_COLOUR, bot)
     pygame.draw.rect(surf, TUBE_BORDER_COLOUR, bot, 3)
 
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 bg, _ = load_image("bin/background.png")
@@ -101,7 +114,7 @@ duck, _ = load_image("bin/duck2.png", True)
 # find the scaling ratio
 prop = TUBE_GAP//2 / duck.get_height()
 duck = pygame.transform.scale(duck,
-            (round(prop*duck.get_width()),TUBE_GAP//2))
+                              (round(prop*duck.get_width()), TUBE_GAP//2))
 
 BG_manager = ScrollingBackground(screen, bg)
 duck = Duck(screen, duck, [WIDTH//3, HEIGHT//2])
@@ -117,7 +130,10 @@ while True:
         if ev.type == QUIT:
             pygame.quit()
             sys.exit()
-        """VERIFICAR SE SE CARREGOU NO ESPACO"""
+        # VERIFICAR SE SE CARREGOU NO ESPACO
+        elif ev.type == KEYDOWN:
+            if ev.key == K_UP:
+                duck.press_bar()
 
     BG_manager.scroll(horizontal_speed)
     BG_manager.update()
@@ -142,6 +158,10 @@ while True:
         else:
             draw_tube(screen, tubes[i])
             """VERIFICAR SE O PATO CHOCA"""
+            first_collision = duck.pos.collidelist(tubes[i])
+            if first_collision > -1:
+                pygame.quit()
+                sys.exit()
             i += 1
 
     duck.update_position()
