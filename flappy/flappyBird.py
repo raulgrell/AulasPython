@@ -108,7 +108,7 @@ font = pygame.font.SysFont(df, 40)
 
 bg, _ = load_image("bin/background.png")
 duck, _ = load_image("bin/duck2.png", True)
-# scale the duck so its height is half the height of the gap
+# cale the duck so its height is half the height of the gap
 # find the scaling ratio
 prop = TUBE_GAP//2 / duck.get_height()
 duck = pygame.transform.scale(duck,
