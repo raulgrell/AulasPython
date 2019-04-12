@@ -26,6 +26,7 @@ class Ball(object):
         self.velY = 0
         self.radius = radius
         self.img, self.img_rect = load_png("bin/ball.png")
+        self.dead = False
 
     def collide(self, point):
         """Returns whether the point is inside the ball"""
@@ -61,20 +62,17 @@ class Game(object):
         """Create a new game"""
         self.score = 0
         self.high_score = 0
-        self.ball = Ball(WIDTH//2, BALL_SIZE, BALL_SIZE)
+        self.balls = []
         self.bg, self.bg_rect = load_png('bin/background.png')
         self.reset()
 
     def reset(self):
         """Resets the score, ball position and ball radius"""
-        # Posição
-        self.ball.posX = WIDTH / 2
-        self.ball.posY = BALL_SIZE
-        # Velocidade
-        self.ball.velX = 0
-        self.ball.velY = 0
-        # Tamanho
-        self.ball.radius = BALL_SIZE
+        self.balls.clear()
+        new_ball = Ball(WIDTH//2, BALL_SIZE, BALL_SIZE)
+        # append adiciona um elemento ao fim da lista
+        self.balls.append(new_ball)
+
         # Recomeçar pontos
         self.score = 0
 
@@ -82,8 +80,10 @@ class Game(object):
         """Draw the background and the ball on a surface"""
         # Desenhar o fundo
         surface.blit(self.bg, (0, 0))
-        # Desenhar a bola
-        self.ball.draw(surface)
+        # Desenhar cada um dos elementos
+        #  da Lista
+        for ball in self.balls:
+            ball.draw(surface)
 
     def draw_score(self, surface):
         """Draw the score on a surface"""
@@ -101,28 +101,37 @@ class Game(object):
 
     def update(self, dt):
         """Updates ball position, checks if it is in bounds"""
-        self.ball.update(dt)
-        # Recomeçar o jogo se a bola cair
-        if self.ball.posY > HEIGHT:
-            self.reset()
-        # Refletir a bola se bater nos lados
-        if self.ball.posX > WIDTH or self.ball.posX < 0:
-            self.ball.velX = -self.ball.velX
+        for ball in self.balls:
+            ball.update(dt)
+            if ball.posY > HEIGHT:
+                ball.dead = True
+            # Refletir a bola se bater nos lados
+            if ball.posX > WIDTH or ball.posX < 0:
+                ball.velX = -ball.velX
+        self.balls[:] = [ball for ball in self.balls if not ball.dead]
+
+    def split_ball (self, ball):
+        new_ball = Ball(ball.posX, ball.posY, ball.radius)
+        new_ball.velX = KICK_FORCE / 2
+        new_ball.velY = -KICK_FORCE
+        ball.velX = -KICK_FORCE / 2
+        ball.velY = -KICK_FORCE
+        self.balls.append(new_ball)
+        self.score_points(1)
+
 
     def handle_click(self, ev):
         """Handle player mouse input event"""
         if ev.button == 1:
-            if self.ball.collide(ev.pos):
-                # Acertamos
-                self.ball.kick(ev.pos)
-                self.ball.radius -= 1
-                self.score_points(1)
-            else:
-                # Falhamos
-                self.score_points(-1)
+            for ball in self.balls:
+                if ball.collide(ev.pos):
+                    ball.kick(ev.pos)
+                    ball.radius -= 1
+                    self.score_points(1)
         elif ev.button == 3:
-            pass
-
+            for ball in self.balls[:]:
+                if ball.collide(ev.pos):
+                    self.split_ball(ball)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -147,6 +156,9 @@ while playing:
         elif ev.type == KEYDOWN:
             if ev.key == K_u:
                 game.reset()
+
+    if(len(game.balls) == 0):
+        game.reset()
 
     dt = clock.tick(60) / 1000
     game.update(dt)
